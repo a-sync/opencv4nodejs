@@ -1,7 +1,7 @@
 {
-  "name": "opencv4nodejs",
+  "name": "@a-sync/opencv4nodejs",
   "version": "4.0.0",
-  "description": "Asynchronous OpenCV 3.x nodejs bindings with JavaScript and TypeScript API.",
+  "description": "Asynchronous OpenCV 3.x nodejs bindings with JavaScript and TypeScript API. (This fork defaults to disabled auto build, and checks for OPENCV4NODEJS_ENABLE_AUTOBUILD)",
   "keywords": [
     "opencv",
     "cv",
@@ -41,6 +41,6 @@
     "macro-inferno": "^0.2.1",
     "nan": "^2.7.0",
     "native-node-utils": "0.0.4",
-    "opencv-build": "0.0.11"
+    "@a-sync/opencv-build": "0.0.11"
   }
 }
