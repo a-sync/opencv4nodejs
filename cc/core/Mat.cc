@@ -85,6 +85,8 @@ NAN_MODULE_INIT(Mat::Init) {
 	Nan::SetPrototypeMethod(ctor, "sumAsync", SumAsync);
 	Nan::SetPrototypeMethod(ctor, "goodFeaturesToTrack", GoodFeaturesToTrack);
 	Nan::SetPrototypeMethod(ctor, "goodFeaturesToTrackAsync", GoodFeaturesToTrackAsync);
+	Nan::SetPrototypeMethod(ctor, "meanStdDev", MeanStdDev);
+	Nan::SetPrototypeMethod(ctor, "meanStdDevAsync", MeanStdDevAsync);
 #if CV_VERSION_MINOR > 1
 	Nan::SetPrototypeMethod(ctor, "rotate", Rotate);
 	Nan::SetPrototypeMethod(ctor, "rotateAsync", RotateAsync);
@@ -278,7 +280,7 @@ NAN_METHOD(Mat::Set) {
 	}
 }
 
-struct Mat::PushBackWorker : public SimpleWorker {
+struct Mat::PushBackWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	PushBackWorker(cv::Mat self) {
@@ -287,7 +289,7 @@ public:
 
 	cv::Mat mat;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		self.push_back(mat);
 		return "";
 	}
@@ -315,7 +317,7 @@ NAN_METHOD(Mat::PushBackAsync) {
 }
 
 
-struct Mat::PopBackWorker : public SimpleWorker {
+struct Mat::PopBackWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	PopBackWorker(cv::Mat self) {
@@ -324,7 +326,7 @@ public:
 
 	int num = 1;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		self.pop_back(num);
 		return "";
 	}
@@ -351,7 +353,7 @@ NAN_METHOD(Mat::PopBackAsync) {
 	FF_WORKER_ASYNC("Mat::PopBackAsync", PopBackWorker, worker);
 }
 
-struct Mat::GetDataWorker : SimpleWorker {
+struct Mat::GetDataWorker : CatchCvExceptionWorker {
 public:
 	cv::Mat mat;
 
@@ -362,7 +364,7 @@ public:
 	size_t size;
 	char *data;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		size = mat.rows * mat.cols * mat.elemSize();
 		data = static_cast<char *>(malloc(size));
 		memcpy(data, mat.data, size);
@@ -406,7 +408,7 @@ NAN_METHOD(Mat::GetRegion) {
 	FF_RETURN(jsRegion);
 }
 
-struct Mat::CopyWorker : public SimpleWorker {
+struct Mat::CopyWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	CopyWorker(cv::Mat self) {
@@ -416,7 +418,7 @@ public:
 	cv::Mat dst;
 	cv::Mat mask = cv::noArray().getMat();
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		self.copyTo(dst, mask);
 		return "";
 	}
@@ -474,7 +476,7 @@ NAN_METHOD(Mat::CopyToAsync) {
 }
 
 
-struct Mat::ConvertToWorker : public SimpleWorker {
+struct Mat::ConvertToWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	ConvertToWorker(cv::Mat self) {
@@ -487,7 +489,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		self.convertTo(dst, rtype, alpha, beta);
 		return "";
 	}
@@ -584,7 +586,7 @@ NAN_METHOD(Mat::Normalize) {
 	FF_RETURN(jsMat);
 }
 
-struct Mat::SplitChannelsWorker : public SimpleWorker {
+struct Mat::SplitChannelsWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	SplitChannelsWorker(cv::Mat self) {
@@ -594,7 +596,7 @@ public:
 
 	std::vector<cv::Mat> mv;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::split(self, mv);
 		return "";
 	}
@@ -615,7 +617,7 @@ NAN_METHOD(Mat::SplitChannelsAsync) {
 	FF_WORKER_ASYNC("Mat::SplitChannelsAsync", SplitChannelsWorker, worker);
 }
 
-struct Mat::AddWeightedWorker : public SimpleWorker {
+struct Mat::AddWeightedWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	AddWeightedWorker(cv::Mat self) {
@@ -630,7 +632,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::addWeighted(self, alpha, src2, beta, gamma, dst, dtype);
 		return "";
 	}
@@ -667,7 +669,7 @@ NAN_METHOD(Mat::AddWeightedAsync) {
 }
 
 
-struct Mat::MinMaxLocWorker : public SimpleWorker {
+struct Mat::MinMaxLocWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	MinMaxLocWorker(cv::Mat self) {
@@ -678,7 +680,7 @@ public:
 	cv::Point2i minLoc, maxLoc;
 	cv::Mat mask = cv::noArray().getMat();
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::minMaxLoc(self, &minVal, &maxVal, &minLoc, &maxLoc, mask);
 		return "";
 	}
@@ -708,7 +710,7 @@ NAN_METHOD(Mat::MinMaxLocAsync) {
 	FF_WORKER_ASYNC("Mat::MinMaxLocAsync", MinMaxLocWorker, worker);
 }
 
-struct Mat::FindNonZeroWorker : public SimpleWorker {
+struct Mat::FindNonZeroWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	FindNonZeroWorker(cv::Mat self) {
@@ -717,7 +719,7 @@ public:
 
 	std::vector<cv::Point> idx;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::findNonZero(self, idx);
 		return "";
 	}
@@ -738,7 +740,7 @@ NAN_METHOD(Mat::FindNonZeroAsync) {
 	FF_WORKER_ASYNC("Mat::FindNonZeroAsync", FindNonZeroWorker, worker);
 }
 
-struct Mat::CountNonZeroWorker : public SimpleWorker {
+struct Mat::CountNonZeroWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	CountNonZeroWorker(cv::Mat self) {
@@ -747,7 +749,7 @@ public:
 
 	int num;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		num = cv::countNonZero(self);
 		return "";
 	}
@@ -768,7 +770,7 @@ NAN_METHOD(Mat::CountNonZeroAsync) {
 	FF_WORKER_ASYNC("Mat::CountNonZeroAsync", CountNonZeroWorker, worker);
 }
 
-struct Mat::PadToSquareWorker : public SimpleWorker {
+struct Mat::PadToSquareWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	PadToSquareWorker(cv::Mat self) {
@@ -777,7 +779,7 @@ public:
 
 	cv::Vec3d fillVec = cv::Vec3d();
 	cv::Mat out;
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		int maxDim = (std::max)(self.cols, self.rows);
 		out = cv::Mat(maxDim, maxDim, self.type(), (cv::Vec3b)fillVec);
 
@@ -814,7 +816,7 @@ NAN_METHOD(Mat::PadToSquareAsync) {
 	FF_WORKER_ASYNC("Mat::PadToSquareAsync", PadToSquareWorker, worker);
 }
 
-struct Mat::DTWorker : public SimpleWorker {
+struct Mat::DTWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat mat;
 	bool isInverse;
@@ -841,7 +843,7 @@ struct Mat::DCTWorker : public DTWorker {
 	DCTWorker(cv::Mat mat, bool isInverse = false) : DTWorker(mat, isInverse) {
 	}
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		if (isInverse) {
 			cv::idct(mat, dst, flags);
 		}
@@ -862,7 +864,7 @@ struct Mat::DFTWorker : public DTWorker {
 
 	int nonzeroRows = 0;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		if (isInverse) {
 			cv::idft(mat, dst, flags, nonzeroRows);
 		}
@@ -936,7 +938,7 @@ NAN_METHOD(Mat::IdftAsync) {
 	FF_WORKER_ASYNC("Mat::IdftAsync", DFTWorker, worker);
 }
 
-struct Mat::MulSpectrumsWorker {
+struct Mat::MulSpectrumsWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat mat;
 	bool isInverse;
@@ -951,7 +953,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		int flags = (dftRows ? cv::DFT_ROWS : 0);
 		cv::mulSpectrums(mat, mat2, dst, flags, conjB);
 		return "";
@@ -997,7 +999,7 @@ NAN_METHOD(Mat::MulSpectrumsAsync) {
 }
 
 
-struct Mat::TransformWorker : public SimpleWorker {
+struct Mat::TransformWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	TransformWorker(cv::Mat self) {
@@ -1008,7 +1010,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::transform(self, dst, m);
 		return "";
 	}
@@ -1040,7 +1042,7 @@ public:
 	PerspectiveTransformWorker(cv::Mat self) : Mat::TransformWorker(self) {
 	}
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::perspectiveTransform(self, dst, m);
 		return "";
 	}
@@ -1058,7 +1060,7 @@ NAN_METHOD(Mat::PerspectiveTransformAsync) {
 }
 
 
-struct Mat::OpWithCodeWorker : public SimpleWorker {
+struct Mat::OpWithCodeWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	OpWithCodeWorker(cv::Mat self) {
@@ -1069,7 +1071,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::flip(self, dst, code);
 		return "";
 	}
@@ -1090,7 +1092,7 @@ public:
 	FlipWorker(cv::Mat self) : OpWithCodeWorker(self) {
 	}
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::flip(self, dst, code);
 		return "";
 	}
@@ -1107,7 +1109,7 @@ NAN_METHOD(Mat::FlipAsync) {
 	FF_WORKER_ASYNC("Mat::FlipAsync", FlipWorker, worker);
 }
 
-struct Mat::SumWorker : public SimpleWorker {
+struct Mat::SumWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	SumWorker(cv::Mat self) {
@@ -1116,7 +1118,7 @@ public:
 
 	cv::Scalar sum;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		sum = cv::sum(self);
 		return "";
 	}
@@ -1149,7 +1151,7 @@ NAN_METHOD(Mat::SumAsync) {
 }
 
 
-struct Mat::ConvertScaleAbsWorker : public SimpleWorker {
+struct Mat::ConvertScaleAbsWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	ConvertScaleAbsWorker(cv::Mat self) {
@@ -1161,7 +1163,7 @@ public:
 
 	cv::Mat dst;
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::convertScaleAbs(self, dst, alpha, beta);
 		return "";
 	}
@@ -1202,7 +1204,7 @@ NAN_METHOD(Mat::ConvertScaleAbsAsync) {
 }
 
 
-struct Mat::GoodFeaturesToTrackWorker : public SimpleWorker {
+struct Mat::GoodFeaturesToTrackWorker : public CatchCvExceptionWorker {
 public:
 	cv::Mat self;
 	GoodFeaturesToTrackWorker(cv::Mat self) {
@@ -1269,7 +1271,8 @@ public:
 		);
 	}
 
-	const char* execute() {
+
+	std::string executeCatchCvExceptionWorker() {
 #if CV_VERSION_MINOR >= 4
 		cv::goodFeaturesToTrack(
 				self, corners,
@@ -1302,13 +1305,55 @@ NAN_METHOD(Mat::GoodFeaturesToTrackAsync) {
 	FF_WORKER_ASYNC("Mat::GoodFeaturesToTrackAsync", GoodFeaturesToTrackWorker, worker);
 }
 
+struct Mat::MeanStdDevWorker : public CatchCvExceptionWorker {
+public:
+	cv::Mat self;
+	MeanStdDevWorker(cv::Mat self) {
+		this->self = self;
+	}
+
+	cv::Mat mask = cv::noArray().getMat();
+
+	cv::Mat mean;
+	cv::Mat stddev;
+
+	std::string executeCatchCvExceptionWorker() {
+		cv::meanStdDev(self, mean, stddev, mask);
+		return "";
+	}
+
+	v8::Local<v8::Value> getReturnValue() {
+		v8::Local<v8::Object> ret = Nan::New<v8::Object>();
+		Nan::Set(ret, Nan::New("mean").ToLocalChecked(), Mat::Converter::wrap(mean));
+		Nan::Set(ret, Nan::New("stddev").ToLocalChecked(), Mat::Converter::wrap(stddev));
+		return ret;
+	}
+
+	bool unwrapOptionalArgs(Nan::NAN_METHOD_ARGS_TYPE info) {
+		return (
+			Mat::Converter::optArg(0, &mask, info)
+		);
+	}
+};
+
+NAN_METHOD(Mat::MeanStdDev) {
+	MeanStdDevWorker worker(Mat::Converter::unwrap(info.This()));
+	FF_WORKER_SYNC("Mat::MeanStdDev", worker);
+	info.GetReturnValue().Set(worker.getReturnValue());
+}
+
+NAN_METHOD(Mat::MeanStdDevAsync) {
+	MeanStdDevWorker worker(Mat::Converter::unwrap(info.This()));
+	FF_WORKER_ASYNC("Mat::MeanStdDevAsync", MeanStdDevWorker, worker);
+}
+
 #if CV_VERSION_MINOR > 1
 struct Mat::RotateWorker : public OpWithCodeWorker {
 public:
 	RotateWorker(cv::Mat self) : OpWithCodeWorker(self) {
 	}
 
-	const char* execute() {
+	std::string executeCatchCvExceptionWorker() {
 		cv::rotate(self, dst, code);
 		return "";
 	}
@@ -1373,4 +1418,5 @@ NAN_METHOD(Mat::Release) {
     cv::Mat *mat = &(Nan::ObjectWrap::Unwrap<Mat>(info.This())->mat);
     mat->release();
 }
+
 

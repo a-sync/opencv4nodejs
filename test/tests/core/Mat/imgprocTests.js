@@ -114,7 +114,7 @@ module.exports = (getTestImg) => {
     };
 
     generateAPITests({
-      getDut: () => rgbMat,
+      getDut: () => rgbMat.copy(),
       methodName: 'bgrToGray',
       methodNameSpace: 'Mat',
       expectOutput
@@ -128,7 +128,7 @@ module.exports = (getTestImg) => {
     };
 
     generateAPITests({
-      getDut: () => rgbMat,
+      getDut: () => rgbMat.copy(),
       methodName: 'cvtColor',
       methodNameSpace: 'Mat',
       getRequiredArgs: () => ([
@@ -576,7 +576,7 @@ module.exports = (getTestImg) => {
       const kSize = new cv.Size(3, 3);
 
       generateAPITests({
-        getDut: () => rgbMat,
+        getDut: () => rgbMat.copy(),
         methodName: 'blur',
         methodNameSpace: 'Mat',
         getRequiredArgs: () => ([
@@ -595,7 +595,7 @@ module.exports = (getTestImg) => {
       const sigmaX = 1.2;
 
       generateAPITests({
-        getDut: () => rgbMat,
+        getDut: () => rgbMat.copy(),
         methodName: 'gaussianBlur',
         methodNameSpace: 'Mat',
         getRequiredArgs: () => ([
@@ -614,7 +614,7 @@ module.exports = (getTestImg) => {
       const kSize = 3;
 
       generateAPITests({
-        getDut: () => rgbMat,
+        getDut: () => rgbMat.copy(),
         methodName: 'medianBlur',
         methodNameSpace: 'Mat',
         getRequiredArgs: () => ([
@@ -829,7 +829,7 @@ module.exports = (getTestImg) => {
     ], cv.CV_32S);
 
     generateAPITests({
-      getDut: () => rgbMat,
+      getDut: () => rgbMat.copy(),
       methodName: 'watershed',
       methodNameSpace: 'Mat',
       getRequiredArgs: () => ([
@@ -1493,7 +1493,7 @@ module.exports = (getTestImg) => {
           ['blockSize', 3],
           ['gradientSize', 3],
           ['useHarrisDetector', false],
-          ['harrisK', 0.04 ]
+          ['harrisK', 0.04]
         ]),
         expectOutput: (out) => {
           expect(out).to.be.instanceOf(Array);
@@ -1511,7 +1511,7 @@ module.exports = (getTestImg) => {
           20, 0.04, 1
         ]),
         getOptionalArgsMap: () => ([
-          ['mask', new cv.Mat(512,512,cv.CV_U8)],
+          ['mask', new cv.Mat(512, 512, cv.CV_U8)],
           ['blockSize', 3],
           ['useHarrisDetector', false],
           ['harrisK', 0.04 ]
@@ -1525,5 +1525,21 @@ module.exports = (getTestImg) => {
       });
     });
 
+    describe('integral', () => {
+      generateAPITests({
+        getDut: () => new cv.Mat(20, 20, cv.CV_32F, 0.5),
+        methodName: 'integral',
+        methodNameSpace: 'Mat',
+        getOptionalArgsMap: () => ([
+          ['sdepth', cv.CV_64F],
+          ['sqdepth', cv.CV_64F]
+        ]),
+        expectOutput: (res) => {
+          expect(res).to.have.property('sum').to.be.instanceOf(cv.Mat);
+          expect(res).to.have.property('sqsum').to.be.instanceOf(cv.Mat);
+          expect(res).to.have.property('tilted').to.be.instanceOf(cv.Mat);
+        }
+      });
+    });
   });
 };

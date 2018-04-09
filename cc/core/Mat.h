@@ -6,7 +6,7 @@
 #include "Rect.h"
 #include "RotatedRect.h"
 #include "Converters.h"
-#include "Workers.h"
+#include "CatchCvExceptionWorker.h"
 #include "macros.h"
 
 #ifndef __FF_MAT_H__
@@ -147,6 +147,10 @@ public:
 	static NAN_METHOD(Flip);
 	static NAN_METHOD(FlipAsync);
 
+	struct MeanStdDevWorker;
+	static NAN_METHOD(MeanStdDev);
+	static NAN_METHOD(MeanStdDevAsync);
+
 #if CV_VERSION_MINOR > 1
 	struct RotateWorker;
 	static NAN_METHOD(Rotate);
@@ -154,6 +158,7 @@ public:
 #endif
 
 	static NAN_METHOD(Release);
+
 
   static Nan::Persistent<v8::FunctionTemplate> constructor;
 
