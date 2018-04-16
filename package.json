@@ -1,5 +1,5 @@
 {
-  "version": "4.2.0",
+  "version": "4.2.1",
   "name": "@a-sync/opencv4nodejs",
   "description": "Asynchronous OpenCV 3.x nodejs bindings with JavaScript and TypeScript API. (This fork defaults to disabled auto build, and checks for OPENCV4NODEJS_ENABLE_AUTOBUILD)",
   "keywords": [
@@ -38,10 +38,10 @@
   },
   "gypfile": true,
   "dependencies": {
+    "@a-sync/opencv-build": "^0.0.12",
     "macro-inferno": "^0.2.1",
     "nan": "^2.7.0",
-    "native-node-utils": "0.1.2",
-    "@a-sync/opencv-build": "0.0.11"
+    "native-node-utils": "0.1.2"
   },
   "optionalDependencies": {
     "@types/node": ">6"
