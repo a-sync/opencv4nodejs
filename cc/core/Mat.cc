@@ -85,8 +85,12 @@ NAN_MODULE_INIT(Mat::Init) {
   Nan::SetPrototypeMethod(ctor, "sumAsync", SumAsync);
   Nan::SetPrototypeMethod(ctor, "goodFeaturesToTrack", GoodFeaturesToTrack);
   Nan::SetPrototypeMethod(ctor, "goodFeaturesToTrackAsync", GoodFeaturesToTrackAsync);
+  Nan::SetPrototypeMethod(ctor, "mean", Mean);
+  Nan::SetPrototypeMethod(ctor, "meanAsync", MeanAsync);
   Nan::SetPrototypeMethod(ctor, "meanStdDev", MeanStdDev);
   Nan::SetPrototypeMethod(ctor, "meanStdDevAsync", MeanStdDevAsync);
+  Nan::SetPrototypeMethod(ctor, "copyMakeBorder", CopyMakeBorder);
+  Nan::SetPrototypeMethod(ctor, "copyMakeBorderAsync", CopyMakeBorderAsync);
 #if CV_VERSION_MINOR > 1
   Nan::SetPrototypeMethod(ctor, "rotate", Rotate);
   Nan::SetPrototypeMethod(ctor, "rotateAsync", RotateAsync);
@@ -219,8 +223,8 @@ NAN_METHOD(Mat::FlattenFloat) {
 NAN_METHOD(Mat::At) {
   FF_METHOD_CONTEXT("Mat::At");
   cv::Mat matSelf = FF_UNWRAP_MAT_AND_GET(info.This());
-  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.rows - 1, "Mat::At row");
-  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.cols - 1, "Mat::At col");
+  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.size[0] - 1, "Mat::At row");
+  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.size[1] - 1, "Mat::At col");
   v8::Local<v8::Value> val;
   FF_MAT_APPLY_TYPED_OPERATOR(matSelf, val, matSelf.type(), FF_MAT_AT, FF::matGet);
   v8::Local<v8::Value> jsVal;
@@ -250,8 +254,8 @@ NAN_METHOD(Mat::At) {
 NAN_METHOD(Mat::AtRaw) {
   FF_METHOD_CONTEXT("Mat::AtRaw");
   cv::Mat matSelf = FF_UNWRAP_MAT_AND_GET(info.This());
-  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.rows - 1, "Mat::At row");
-  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.cols - 1, "Mat::At col");
+  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.size[0] - 1, "Mat::At row");
+  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.size[1] - 1, "Mat::At col");
   v8::Local<v8::Value> val;
   FF_MAT_APPLY_TYPED_OPERATOR(matSelf, val, matSelf.type(), FF_MAT_AT, FF::matGet);
   FF_RETURN(val);
@@ -260,8 +264,8 @@ NAN_METHOD(Mat::AtRaw) {
 NAN_METHOD(Mat::Set) {
   FF_METHOD_CONTEXT("Mat::Set");
   cv::Mat matSelf = FF_UNWRAP_MAT_AND_GET(info.This());
-  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.rows - 1, "Mat::Set row");
-  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.cols - 1, "Mat::Set col");
+  FF_ASSERT_INDEX_RANGE(info[0]->Int32Value(), matSelf.size[0] - 1, "Mat::At row");
+  FF_ASSERT_INDEX_RANGE(info[1]->Int32Value(), matSelf.size[1] - 1, "Mat::At col");
 
   int cn = matSelf.channels();
   if (info[2]->IsArray()) {
@@ -291,8 +295,12 @@ NAN_METHOD(Mat::Set) {
 
 NAN_METHOD(Mat::GetDataAsArray) {
   cv::Mat mat = FF_UNWRAP_MAT_AND_GET(info.This());
-  FF_ARR rowArray = FF_NEW_ARRAY(mat.rows);
-  FF_MAT_APPLY_TYPED_OPERATOR(mat, rowArray, mat.type(), FF_JS_ARRAY_FROM_MAT, FF::matGet);
+  FF_ARR rowArray = FF_NEW_ARRAY(mat.size[0]);
+  if (mat.dims > 2) { // 3D
+    FF_MAT_APPLY_TYPED_OPERATOR(mat, rowArray, mat.type(), FF_JS_ARRAY_FROM_MAT_3D, FF::matGet);
+  } else { // 2D
+    FF_MAT_APPLY_TYPED_OPERATOR(mat, rowArray, mat.type(), FF_JS_ARRAY_FROM_MAT, FF::matGet);
+  }
   FF_RETURN(rowArray);
 }
 
@@ -767,6 +775,22 @@ NAN_METHOD(Mat::GoodFeaturesToTrackAsync) {
   );
 }
 
+NAN_METHOD(Mat::Mean) {
+	FF::SyncBinding(
+		std::make_shared<MatBindings::MeanWorker>(Mat::Converter::unwrap(info.This())),
+		"Mat::Mean",
+		info
+	);
+}
+
+NAN_METHOD(Mat::MeanAsync) {
+	FF::AsyncBinding(
+		std::make_shared<MatBindings::MeanWorker>(Mat::Converter::unwrap(info.This())),
+		"Mat::MeanAsync",
+		info
+	);
+}
+
 NAN_METHOD(Mat::MeanStdDev) {
   FF::SyncBinding(
     std::make_shared<MatBindings::MeanStdDevWorker>(Mat::Converter::unwrap(info.This())),
@@ -781,6 +805,22 @@ NAN_METHOD(Mat::MeanStdDevAsync) {
     "Mat::MeanStdDevAsync",
     info
   );
+}
+
+NAN_METHOD(Mat::CopyMakeBorder) {
+	FF::SyncBinding(
+		std::make_shared<MatBindings::CopyMakeBorderWorker>(Mat::Converter::unwrap(info.This())),
+		"Mat::CopyMakeBorder",
+		info
+	);
+}
+
+NAN_METHOD(Mat::CopyMakeBorderAsync) {
+	FF::AsyncBinding(
+		std::make_shared<MatBindings::CopyMakeBorderWorker>(Mat::Converter::unwrap(info.This())),
+		"Mat::CopyMakeBorderAsync",
+		info
+	);
 }
 
 #if CV_VERSION_MINOR > 1
