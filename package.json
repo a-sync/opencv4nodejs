@@ -1,6 +1,6 @@
 {
   "name": "@a-sync/opencv4nodejs",
-  "version": "4.6.1",
+  "version": "4.7.2",
   "description": "Asynchronous OpenCV 3.x nodejs bindings with JavaScript and TypeScript API. (This fork defaults to disabled auto build, and checks for OPENCV4NODEJS_ENABLE_AUTOBUILD)",
   "keywords": [
     "opencv",
