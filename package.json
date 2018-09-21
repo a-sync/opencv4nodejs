@@ -38,10 +38,10 @@
   },
   "gypfile": true,
   "dependencies": {
-    "@a-sync/opencv-build": "0.0.14",
+    "@a-sync/opencv-build": "0.0.15",
     "macro-inferno": "^0.2.1",
     "nan": "^2.11.0",
-    "native-node-utils": "0.1.2",
+    "native-node-utils": "0.1.2"
   },
   "optionalDependencies": {
     "@types/node": ">6"
